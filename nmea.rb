@@ -72,6 +72,7 @@ def receive_ais
       end
     end
   end
+  receive_ais unless $log.has_key? "status"
 end
 
 receive_ais
