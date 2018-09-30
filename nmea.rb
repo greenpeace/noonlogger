@@ -52,7 +52,7 @@ def receive_nmea
       break
     end
   end
-  if $log.keys.sort.join("") == "coursepositionstatuswind_direction" and $filename
+  if $log.keys.sort.join("") == "coursepositionwind_direction" and $filename
     ais = JSON.parse(File.read("#{Dir.pwd}/data/ais.json"))
     $log["status"] = ais["status_name"] || ""
     if $noon
@@ -64,7 +64,7 @@ def receive_nmea
         file << $log["position"].to_json
       end
     end
-  else
+  elsif Time.now - $t0 < 300
     sleep 1
     receive_nmea
   end

@@ -17,7 +17,7 @@ $log = {}
 $filename = "ais"
 
 def receive_ais
-  raw = $aisSock.recv(4096)
+  raw = $aisSock.recv(4096*2)
   source_decoder = NMEAPlus::SourceDecoder.new(raw)
   source_decoder.each_complete_message do |msg|
     begin
@@ -25,7 +25,8 @@ def receive_ais
       pp msg.ais.attributes
       next unless msg.ais.source_mmsi == $VESSEL_MMSI
       begin
-        $log["status"] = msg.ais.get_navigational_status_description(msg.ais.navigational_status)
+        $log["status_id"] = msg.ais.navigational_status
+        $log["status_name"] = msg.ais.get_navigational_status_description(msg.ais.navigational_status)
         break
       rescue
       end
@@ -34,14 +35,16 @@ def receive_ais
       pp msg.ais.source_mmsi if msg
     end
   end
-  receive_ais unless $log.has_key? "status"
+  if Time.now - $t0 < 300 and not $log.has_key? "status" 
+    receive_ais
+  end
 end
 
 receive_ais
 
 $aisSock.close  
 
-File.open("#{Dir.pwd}/data/#{$filename}.json","w") do |file|
+File.open("#{Dir.pwd}/data/ais.json","w") do |file|
   file << $log.to_json
 end
 
