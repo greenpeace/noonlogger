@@ -56,7 +56,7 @@ def receive_nmea
   end
 end
 
-while $log.keys.sort.join("") != "coursepositionwind_direction" and $filename.nil? and Time.now - $t0 < 120
+while $log.keys.sort.join("") != "coursepositionwind_directionwind_speed" or $filename.nil? or Time.now - $t0 < 120
   #puts "sleepin'"
   #pp $log.keys.sort
   sleep 1
@@ -71,7 +71,7 @@ if $noon
   end
 else
   File.open("#{$WORKING_DIR}/data/position.json","w") do |file|
-    file << [$log["positionLat"],$log["positionLon"].to_json
+    file << [$log["positionLat"],$log["positionLon"]].to_json
   end
 end
 
