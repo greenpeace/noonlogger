@@ -2,4 +2,5 @@
 .rvmrc
 Gemfile.lock
 data/*
+reports/*
 editme.rb

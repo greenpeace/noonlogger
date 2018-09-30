@@ -56,7 +56,7 @@ def receive_nmea
     ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
     $log["status"] = ais["status_name"] || ""
     if $noon
-      File.open("#{$WORKING_DIR}/data/#{$filename}.json","w") do |file|
+      File.open("#{$WORKING_DIR}/reports/#{$filename}.json","w") do |file|
         file << $log.to_json
       end
     else
