@@ -56,9 +56,8 @@ def receive_nmea
   end
 end
 
-while $log.keys.sort.join("") != "coursepositionwind_directionwind_speed" or $filename.nil? or Time.now - $t0 < 120
+while $log.keys.sort.join("").downcase != "coursepositionlatpositionlonwind_directionwind_force" or $filename.nil?
   #puts "sleepin'"
-  #pp $log.keys.sort
   sleep 1
   receive_nmea
 end
@@ -67,13 +66,14 @@ ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
 $log["status"] = ais["status_name"] || ""
 if $noon
   File.open("#{$WORKING_DIR}/reports/#{$filename}.json","w") do |file|
-    file << {"NMEA"=>$log,"timestamp"=>Time.now.to_i}.to_json
+    file << {"NMEA"=>$log,"timestamp"=>Time.now.to_i}.to_json + "\n"
   end
 else
   File.open("#{$WORKING_DIR}/data/position.json","w") do |file|
-    file << [$log["positionLat"],$log["positionLon"]].to_json
+    file << [$log["positionLat"],$log["positionLon"]].to_json + "\n"
   end
 end
 
 $nmeaSock.close
+
 
