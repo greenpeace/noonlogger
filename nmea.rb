@@ -1,6 +1,6 @@
 
 # cron job line to trigger every hour
-# 58 * * * * /absolute/path/to/this/file
+# 55 * * * * /absolute/path/to/ruby /absolute/path/to/this/file
 
 # edit editme.rb to set local information
 require "/var/www/noonlogger/editme.rb"  
@@ -52,26 +52,25 @@ def receive_nmea
       break
     end
   end
-  if $log.keys.sort.join("") == "coursepositionwind_direction" and $filename
-    ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
-    $log["status"] = ais["status_name"] || ""
-    if $noon
-      File.open("#{$WORKING_DIR}/reports/#{$filename}.json","w") do |file|
-        file << $log.to_json
-      end
-    else
-      File.open("#{$WORKING_DIR}/data/position.json","w") do |file|
-        file << $log["position"].to_json
-      end
-    end
-  elsif Time.now - $t0 < 300
-    sleep 1
-    receive_nmea
-  end
-
 end
 
-receive_nmea
+if $log.keys.sort.join("") == "coursepositionwind_direction" and $filename
+  ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
+  $log["status"] = ais["status_name"] || ""
+  $log["timestamp"] = Time.now.to_i
+  if $noon
+    File.open("#{$WORKING_DIR}/reports/#{$filename}.json","w") do |file|
+      file << $log.to_json
+    end
+  else
+    File.open("#{$WORKING_DIR}/data/position.json","w") do |file|
+      file << $log["position"].to_json
+    end
+  end
+elsif Time.now - $t0 < 120
+  sleep 1
+  receive_nmea
+end
 
 $nmeaSock.close
 

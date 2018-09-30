@@ -1,6 +1,6 @@
 
 # cron job line to trigger every hour
-# 5 * * * * /absolute/path/to/this/file
+# 45 * * * * /absolute/path/to/python /absolute/path/to/this/file
 
 from datetime import datetime,timedelta
 import pytz

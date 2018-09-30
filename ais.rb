@@ -1,6 +1,6 @@
 
 # cron job line to trigger every hour
-# */10 * * * * /absolute/path/to/this/file
+# 50 * * * * /absolute/path/to/ruby /absolute/path/to/this/file
 
 # edit editme.rb to set local information
 require "/var/www/noonlogger/editme.rb"  
@@ -28,6 +28,7 @@ def receive_ais
       begin
         $log["status_id"] = msg.ais.navigational_status
         $log["status_name"] = msg.ais.get_navigational_status_description(msg.ais.navigational_status)
+        $log["timestamp"] = Time.now.to_i
       rescue
       end
     rescue
