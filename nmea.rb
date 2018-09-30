@@ -16,6 +16,11 @@ $t0 = Time.now
 $log = {}
 $noon = false
 $filename = nil
+begin
+  $tz = JSON.parse(File.read("#{Dir.pwd}/data/tz.json"))["timedelta"]
+rescue
+  $tz = 0
+end
 
 def receive_nmea
   raw = $nmeaSock.recv(4096)
@@ -31,13 +36,14 @@ def receive_nmea
       if mt == "MWV" and msg.wind_angle_reference == "T"
         $log["wind_direction"] = msg.wind_angle
       elsif mt == "ZDA"
-        tz_delta = msg.fields[-2].to_i * 60 * 60
-        local = $t0 + tz_delta
+        local = $t0 + $tz * 3600
         $filename = "#{local.strftime("%Y-%m-%d")}_#{$VESSEL_NAME}_NMEA.log"
+        puts "#{local.hour}:#{local.minute}"
         $noon = true if local.hour == 11
       elsif mt == "VTG"
         $log["course"] = msg.track_degrees_true
       elsif mt == "GGA"
+        pp msg.methods
       end
     rescue => e
       #puts "Parse error: #{sentence}"
@@ -46,18 +52,21 @@ def receive_nmea
       break
     end
   end
+  if $log.keys.sort.join("") == "coursepositionstatuswind_direction" and $filename and $noon
+    ais = JSON.parse(File.read("#{Dir.pwd}/data/ais.json"))
+    $log["status"] = ais["status_name"] || ""
+    File.open("#{Dir.pwd}/data/#{$filename}.json","w") do |file|
+      file << $log.to_json
+    end
+  else
+    sleep 1
+    receive_nmea
+  end
+
 end
 
 receive_nmea
 
 $nmeaSock.close
-
-if $log.keys.sort.join("") == "coursepositionstatuswind_direction" and $filename and $noon
-  ais = JSON.parse(File.read("#{Dir.pwd}/data/ais.json"))
-  $log["status"] = ais["status_name"] || ""
-  File.open("#{Dir.pwd}/data/#{$filename}.json","w") do |file|
-    file << $log.to_json
-  end
-end
 
 
