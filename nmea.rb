@@ -43,20 +43,26 @@ def receive_nmea
       elsif mt == "VTG"
         $log["course"] = msg.track_degrees_true
       elsif mt == "GGA"
-        pp msg.methods
+        $log["position"] = [msg.latitude,msg.longitude]
       end
     rescue => e
-      #puts "Parse error: #{sentence}"
+      puts "Parse error: #{sentence}"
     end
     if $log.keys.sort.join("") == "coursepositionwind_direction" and $filename
       break
     end
   end
-  if $log.keys.sort.join("") == "coursepositionstatuswind_direction" and $filename and $noon
+  if $log.keys.sort.join("") == "coursepositionstatuswind_direction" and $filename
     ais = JSON.parse(File.read("#{Dir.pwd}/data/ais.json"))
     $log["status"] = ais["status_name"] || ""
-    File.open("#{Dir.pwd}/data/#{$filename}.json","w") do |file|
-      file << $log.to_json
+    if $noon
+      File.open("#{Dir.pwd}/data/#{$filename}.json","w") do |file|
+        file << $log.to_json
+      end
+    else
+      File.open("#{Dir.pwd}/data/position.json","w") do |file|
+        file << $log["position"].to_json
+      end
     end
   else
     sleep 1
