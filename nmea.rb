@@ -3,7 +3,7 @@
 # 58 * * * * /absolute/path/to/this/file
 
 # edit editme.rb to set local information
-require "#{Dir.pwd}/editme.rb"  
+require "/var/www/noonlogger/editme.rb"  
 require "nmea_plus"  
 require "socket"
 require "json"
@@ -17,7 +17,7 @@ $log = {}
 $noon = false
 $filename = nil
 begin
-  $tz = JSON.parse(File.read("#{Dir.pwd}/data/tz.json"))["timedelta"]
+  $tz = JSON.parse(File.read("#{$WORKING_DIR}/data/tz.json"))["timedelta"]
 rescue
   $tz = 0
 end
@@ -53,14 +53,14 @@ def receive_nmea
     end
   end
   if $log.keys.sort.join("") == "coursepositionwind_direction" and $filename
-    ais = JSON.parse(File.read("#{Dir.pwd}/data/ais.json"))
+    ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
     $log["status"] = ais["status_name"] || ""
     if $noon
-      File.open("#{Dir.pwd}/data/#{$filename}.json","w") do |file|
+      File.open("#{$WORKING_DIR}/data/#{$filename}.json","w") do |file|
         file << $log.to_json
       end
     else
-      File.open("#{Dir.pwd}/data/position.json","w") do |file|
+      File.open("#{$WORKING_DIR}/data/position.json","w") do |file|
         file << $log["position"].to_json
       end
     end

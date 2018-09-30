@@ -3,7 +3,7 @@
 # */10 * * * * /absolute/path/to/this/file
 
 # edit editme.rb to set local information
-require "#{Dir.pwd}/editme.rb"  
+require "/var/www/noonlogger/editme.rb"  
 require "nmea_plus"  
 require "socket"
 require "json"
@@ -21,13 +21,13 @@ def receive_ais
   source_decoder = NMEAPlus::SourceDecoder.new(raw)
   source_decoder.each_complete_message do |msg|
     begin
+      pp [msg.ais.source_mmsi, msg.ais.message_type] if msg.ais.source_mmsi == $VESSEL_MMSI
       next unless [1,2,3].include?(msg.ais.message_type)
-      pp msg.ais.attributes
+      pp [msg.ais.source_mmsi, msg.ais.get_navigational_status_description(msg.ais.navigational_status)]
       next unless msg.ais.source_mmsi == $VESSEL_MMSI
       begin
         $log["status_id"] = msg.ais.navigational_status
         $log["status_name"] = msg.ais.get_navigational_status_description(msg.ais.navigational_status)
-        break
       rescue
       end
     rescue
@@ -35,7 +35,7 @@ def receive_ais
       pp msg.ais.source_mmsi if msg
     end
   end
-  if Time.now - $t0 < 300 and not $log.has_key? "status" 
+  if Time.now - $t0 < 300 and not $log.has_key? "status_name" 
     receive_ais
   end
 end
@@ -44,7 +44,7 @@ receive_ais
 
 $aisSock.close  
 
-File.open("#{Dir.pwd}/data/ais.json","w") do |file|
+File.open("#{$WORKING_DIR}/data/ais.json","w") do |file|
   file << $log.to_json
 end
 

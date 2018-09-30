@@ -8,6 +8,8 @@ $AIS_SOCKET_PORT = 7002
 $VESSEL_NAME = "SYRW"
 $VESSEL_MMSI = "244163000"
 
+$WORKING_DIR = "/var/www/noonlogger"
+
 
 # can go the environment way too
 =begin

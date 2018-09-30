@@ -7,7 +7,7 @@ import pytz
 from tzwhere import tzwhere
 import json, os
 
-loc = json.loads(open(os.getcwd()+"/data/position.json","r").read())
+loc = json.loads("/var/www/noonlogger/data/position.json","r").read())
 print loc
 
 def toMins(dec):
@@ -33,6 +33,6 @@ data["timezone"] = tzs
 data["timecode"] = tzc
 data["timedelta"] = tz.seconds / 3600.0
 
-with open(os.getcwd()+"/data/tz.json","w") as file:
+with open("/var/www/noonlogger/data/tz.json","w") as file:
     json.dump(data, file)
 
