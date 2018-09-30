@@ -1,6 +1,6 @@
 ### Noon Reports logger with ruby
 
-Automated flow for Greenpeace ships
+Automated noon reports flow for Greenpeace ships - saves the data to `/var/www/noonlogger/reports/[date]_[ship]_NMEA.json`.
 
 ##### Dependencies
 
