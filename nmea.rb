@@ -39,7 +39,7 @@ def receive_nmea
         local = $t0 + $tz * 3600
         $filename = "#{local.strftime("%Y-%m-%d")}_#{$VESSEL_NAME}_NMEA.log"
         puts "#{local.hour}:#{local.minute}"
-        $noon = true if local.hour == 11
+        $noon = true if local.hour % 24 == 11
       elsif mt == "VTG"
         $log["course"] = msg.track_degrees_true
       elsif mt == "GGA"
