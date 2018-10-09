@@ -7,7 +7,8 @@ import pytz
 from tzwhere import tzwhere
 import json, os
 
-loc = json.loads("/var/www/noonlogger/data/position.json","r").read())
+with open("/var/www/noonlogger/data/position.json") as fd:
+    loc = json.load(fd)
 print loc
 
 def toMins(dec):

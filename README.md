@@ -25,13 +25,14 @@ pip install --upgrade pip
 pip install pytz tzwhere
 ```
 
-Clone the repository to `/var/www/noonlogger` and create the `editme.rb` file
-with correct data.
+Clone the repository to `/var/www/noonlogger`, create necessary folders and copy the `editme.rb` file with correct data.
 
 ```
 cd /var/www/
 git clone https://github.com/ta6o/noonlogger.git
 cd noonlogger
+mkdir data
+mkdir reports
 cp editme.rb.sample editme.rb
 (vim|emacs|nano|etc.) editme.rb
 ```
