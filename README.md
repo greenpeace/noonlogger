@@ -15,8 +15,26 @@ Python:
 
 ##### Instalation
 
+First, install required packages:
+
+```
+yum makecache fast
+yum install ruby ruby-devel rubygems-devel openssl-devel automake gcc gcc-c++ kernel-devel python2-pip
+gem install nmea_plus
+pip install --upgrade pip
+pip install pytz tzwhere
+```
+
 Clone the repository to `/var/www/noonlogger` and create the `editme.rb` file
 with correct data.
+
+```
+cd /var/www/
+git clone https://github.com/ta6o/noonlogger.git
+cd noonlogger
+cp editme.rb.sample editme.rb
+(vim|emacs|nano|etc.) editme.rb
+```
 
 Set the cron jobs running with `crontab -e` and append the lines:
 
