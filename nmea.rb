@@ -45,7 +45,7 @@ def receive_nmea
         $noon = true if local.hour.to_i % 24 == 11
       elsif mt == "VTG"
         $log["course"] = msg.track_degrees_true.to_i
-      elsif mt == "GGA"
+      elsif ["GGA","RMC"].include?(msg)
         $log["positionLat"] = msg.latitude
         $log["positionLon"] = msg.longitude
       end
@@ -53,6 +53,10 @@ def receive_nmea
       #puts "Parse error: #{sentence}"
       #puts e.backtrace
     end
+  end
+  if Time.now - $t0 > 60 and not $log.has_key?("wind_force")
+    $log["wind_force"] = "-"
+    $log["wind_direction"] = "-"
   end
 end
 
