@@ -45,7 +45,7 @@ def receive_nmea
         $noon = true if local.hour.to_i % 24 == 11
       elsif mt == "VTG"
         $log["course"] = msg.track_degrees_true.to_i
-      elsif ["GGA","RMC"].include?(msg)
+      elsif ["GGA","RMC"].include?(mt)
         $log["positionLat"] = msg.latitude
         $log["positionLon"] = msg.longitude
       end
