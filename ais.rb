@@ -36,6 +36,13 @@ def receive_ais
       pp msg.ais.source_mmsi if msg
     end
   end
+  if Time.now - $t0 > 60
+    unless $log.has_key?("status_name")
+      $log["status_id"] = "-"
+      $log["status_name"] = "-"
+      $log["timestamp"] = Time.now.to_i
+    end
+  end
 end
 
 #while Time.now - $t0 < 300 and not $log.has_key? "status_name" 
