@@ -10,6 +10,9 @@ require 'pp'
 
 $decoder = NMEAPlus::Decoder.new
 $nmeaSock = TCPSocket.new( $NMEA_SOCKET_IP, $NMEA_SOCKET_PORT )  
+if $WIND_SOCKET_PORT and $WIND_SOCKET_PORT != ""
+  $windSock = TCPSocket.new( $WIND_SOCKET_IP, $WIND_SOCKET_PORT )  
+end
 
 $t0 = Time.now
 $log = {}
@@ -60,10 +63,36 @@ def receive_nmea
   end
 end
 
+def receive_wind
+  raw = $windSock.recv(4096)
+  cut = raw.match(/\r\n$/).nil?
+  sentences = raw.split(/\r\n/)
+  sentences.pop if cut
+  sentences.reverse.each_with_index do |sentence|
+    begin
+      msg = $decoder.parse(sentence)
+      mt = msg.message_type
+      next if msg.talker == "AI"
+      next if $log.has_key?(mt)
+      if mt == "MWV" and msg.wind_angle_reference == "T"
+        units = {"K"=>0.539957,"M"=>1.94384,"N"=>1}
+        $log["wind_force"] = (msg.wind_speed * units[msg.wind_speed_units]).to_i
+        $log["wind_direction"] = msg.wind_angle.to_i
+      end
+    rescue => e
+      #puts "Parse error: #{sentence}"
+      #puts e.backtrace
+    end
+  end
+end
+
 while $log.keys.sort.join("").downcase != "coursepositionlatpositionlonwind_directionwind_force" or $filename.nil?
   #puts "sleepin'"
   sleep 1
   receive_nmea
+  if $WIND_SOCKET_PORT and $WIND_SOCKET_PORT != ""
+    receive_wind
+  end
 end
 
 ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
