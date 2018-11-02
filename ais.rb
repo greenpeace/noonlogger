@@ -21,9 +21,9 @@ def receive_ais
   source_decoder = NMEAPlus::SourceDecoder.new(raw)
   source_decoder.each_complete_message do |msg|
     begin
-      pp [msg.ais.source_mmsi, msg.ais.message_type] if msg.ais.source_mmsi.to_s == $VESSEL_MMSI
+      # pp [msg.ais.source_mmsi, msg.ais.message_type] if msg.ais.source_mmsi.to_s == $VESSEL_MMSI
       next unless [1,2,3].include?(msg.ais.message_type)
-      pp [msg.ais.source_mmsi, msg.ais.get_navigational_status_description(msg.ais.navigational_status)]
+      # pp [msg.ais.source_mmsi, msg.ais.get_navigational_status_description(msg.ais.navigational_status)]
       next unless msg.ais.source_mmsi.to_s == $VESSEL_MMSI
       begin
         $log["status_id"] = msg.ais.navigational_status
@@ -32,8 +32,8 @@ def receive_ais
       rescue
       end
     rescue
-      pp "Error: #{msg}"
-      pp msg.ais.source_mmsi if msg
+      # pp "Error: #{msg}"
+      # pp msg.ais.source_mmsi if msg
     end
   end
   if Time.now - $t0 > 60

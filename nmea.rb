@@ -24,8 +24,6 @@ rescue
   $tz = 0
 end
 
-#puts "tz: #{$tz}"
-
 def receive_nmea
   raw = $nmeaSock.recv(4096)
   cut = raw.match(/\r\n$/).nil?
@@ -46,6 +44,8 @@ def receive_nmea
         $filename = "#{local.strftime("%Y-%m-%d")}_#{$VESSEL_NAME}_NMEA"
         #puts "#{local.hour}:#{local.min}"
         $noon = true if local.hour.to_i % 24 == 11
+      elsif mt == "HDT"
+        $log["heading"] = msg.true_heading_degrees.to_f
       elsif mt == "VTG"
         $log["course"] = msg.track_degrees_true.to_i
       elsif ["GGA","RMC"].include?(mt)
@@ -74,10 +74,14 @@ def receive_wind
       mt = msg.message_type
       next if msg.talker == "AI"
       next if $log.has_key?(mt)
-      if mt == "MWV" and msg.wind_angle_reference == "T"
+      if mt == "MWV"
         units = {"K"=>0.539957,"M"=>1.94384,"N"=>1}
         $log["wind_force"] = (msg.wind_speed * units[msg.wind_speed_units]).to_i
-        $log["wind_direction"] = msg.wind_angle.to_i
+        if msg.wind_angle_reference == "T"
+          $log["wind_direction"] = msg.wind_angle.to_i
+        elsif $log.has_key?("heading")
+          $log["wind_direction"] = ($log["heading"] + msg.wind_angle.to_f).to_i % 360
+        end
       end
     rescue => e
       #puts "Parse error: #{sentence}"
@@ -97,9 +101,10 @@ end
 
 ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
 $log["status"] = ais["status_name"] || ""
+pp {"NMEA"=>$log.except("heading"),"timestamp"=>Time.now.to_i}
 if $noon
   File.open("#{$WORKING_DIR}/reports/#{$filename}.json","w") do |file|
-    file << {"NMEA"=>$log,"timestamp"=>Time.now.to_i}.to_json + "\n"
+    file << {"NMEA"=>$log.except("heading"),"timestamp"=>Time.now.to_i}.to_json + "\n"
   end
 else
   File.open("#{$WORKING_DIR}/data/position.json","w") do |file|
