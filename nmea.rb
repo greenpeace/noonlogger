@@ -101,7 +101,7 @@ end
 
 ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
 $log["status"] = ais["status_name"] || ""
-pp {"NMEA"=>$log.except("heading"),"timestamp"=>Time.now.to_i}
+pp "NMEA"=>$log.except("heading"),"timestamp"=>Time.now.to_i
 if $noon
   File.open("#{$WORKING_DIR}/reports/#{$filename}.json","w") do |file|
     file << {"NMEA"=>$log.except("heading"),"timestamp"=>Time.now.to_i}.to_json + "\n"
