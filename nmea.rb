@@ -90,7 +90,7 @@ def receive_wind
   end
 end
 
-while $log.keys.sort.join("").downcase != "coursepositionlatpositionlonwind_directionwind_force" or $filename.nil?
+while $log.keys.sort.join("").downcase != "courseheadingpositionlatpositionlonwind_directionwind_force" or $filename.nil?
   #puts "sleepin'"
   sleep 1
   receive_nmea
