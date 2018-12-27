@@ -4,12 +4,12 @@
 # edit editme.rb to set local information
 require "/var/www/noonlogger/editme.rb"  
 require "nmea_plus"  
-require "socket"
+require "tcp_timeout"
 require "json"
 require 'pp'  
 
 $decoder = NMEAPlus::Decoder.new
-$nmeaSock = TCPSocket.new( $NMEA_SOCKET_IP, $NMEA_SOCKET_PORT )  
+$nmeaSock = TCPTimeout::TCPSocket.new( $NMEA_SOCKET_IP, $NMEA_SOCKET_PORT, read_timeout: 1)  
 if $WIND_SOCKET_PORT and $WIND_SOCKET_PORT != ""
   $windSock = TCPSocket.new( $WIND_SOCKET_IP, $WIND_SOCKET_PORT )  
 end
@@ -25,11 +25,15 @@ rescue
 end
 
 def receive_nmea
-  raw = $nmeaSock.recv(4096)
+  begin
+    raw = $nmeaSock.read(4096)
+  rescue
+    return false
+  end
   cut = raw.match(/\r\n$/).nil?
   sentences = raw.split(/\r\n/)
   sentences.pop if cut
-  sentences.reverse.each_with_index do |sentence|
+  sentences.reverse.each_with_index do |sentence,index|
     begin
       msg = $decoder.parse(sentence)
       mt = msg.message_type
@@ -85,20 +89,20 @@ def receive_wind
         end
       end
     rescue => e
-      #puts "Parse error: #{sentence}"
+      puts "Parse error: #{sentence}"
       #puts e.backtrace
     end
   end
 end
 
 while $log.keys.sort.join("").downcase != "courseheadingpositionlatpositionlonwind_directionwind_force" or $filename.nil?
-  #puts "sleepin'"
-  sleep 1
+  #sleep 1
+  break if Time.now - $t0 > 60
+  #puts $log.keys.sort.join("").downcase
   receive_nmea
   if $WIND_SOCKET_PORT and $WIND_SOCKET_PORT != ""
     receive_wind
   end
-  puts Time.now - $t0
 end
 
 ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
