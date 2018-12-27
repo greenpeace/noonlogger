@@ -76,7 +76,8 @@ def receive_wind
       next if $log.has_key?(mt)
       if mt == "MWV"
         units = {"K"=>0.539957,"M"=>1.94384,"N"=>1}
-        $log["wind_force"] = (msg.wind_speed * units[msg.wind_speed_units]).to_i
+        #$log["wind_force"] = (msg.wind_speed * units[msg.wind_speed_units]).to_i
+        $log["wind_force"] = (msg.wind_speed * 1).to_i
         if msg.wind_angle_reference == "T"
           $log["wind_direction"] = msg.wind_angle.to_i
         elsif $log.has_key?("heading")
@@ -97,14 +98,16 @@ while $log.keys.sort.join("").downcase != "courseheadingpositionlatpositionlonwi
   if $WIND_SOCKET_PORT and $WIND_SOCKET_PORT != ""
     receive_wind
   end
+  puts Time.now - $t0
 end
 
 ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
 $log["status"] = ais["status_name"] || ""
-pp "NMEA"=>$log.except("heading"),"timestamp"=>Time.now.to_i
+$log.delete "heading"
+pp "NMEA"=>$log,"timestamp"=>Time.now.to_i
 if $noon
   File.open("#{$WORKING_DIR}/reports/#{$filename}.json","w") do |file|
-    file << {"NMEA"=>$log.except("heading"),"timestamp"=>Time.now.to_i}.to_json + "\n"
+    file << {"NMEA"=>$log,"timestamp"=>Time.now.to_i}.to_json + "\n"
   end
 else
   File.open("#{$WORKING_DIR}/data/position.json","w") do |file|

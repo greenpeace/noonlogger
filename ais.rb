@@ -3,7 +3,7 @@
 # 50 * * * * /absolute/path/to/ruby /absolute/path/to/this/file
 
 # edit editme.rb to set local information
-require "/var/www/noonlogger/editme.rb"  
+require "./editme.rb"  
 require "nmea_plus"  
 require "socket"
 require "json"
@@ -14,6 +14,7 @@ $aisSock = TCPSocket.new( $AIS_SOCKET_IP, $AIS_SOCKET_PORT )
 
 $t0 = Time.now
 $log = {}
+$freq = {}
 $filename = "ais"
 
 def receive_ais
@@ -21,7 +22,13 @@ def receive_ais
   source_decoder = NMEAPlus::SourceDecoder.new(raw)
   source_decoder.each_complete_message do |msg|
     begin
-      # pp [msg.ais.source_mmsi, msg.ais.message_type] if msg.ais.source_mmsi.to_s == $VESSEL_MMSI
+      if msg.ais.source_mmsi.to_s == $VESSEL_MMSI
+        puts "\e[32mtime: #{Time.now}, mmsi: #{msg.ais.source_mmsi}, type: #{msg.ais.message_type}\e[0m"
+      else
+        #puts "\e[31mtime: #{Time.now}, mmsi: #{msg.ais.source_mmsi}, type: #{msg.ais.message_type}\e[0m"
+      end
+      $freq[msg.ais.source_mmsi] = 0 unless $freq.has_key?(msg.ais.source_mmsi)
+      $freq[msg.ais.source_mmsi] += 1
       next unless [1,2,3].include?(msg.ais.message_type)
       # pp [msg.ais.source_mmsi, msg.ais.get_navigational_status_description(msg.ais.navigational_status)]
       next unless msg.ais.source_mmsi.to_s == $VESSEL_MMSI
@@ -36,19 +43,18 @@ def receive_ais
       # pp msg.ais.source_mmsi if msg
     end
   end
-  if Time.now - $t0 > 60
-    unless $log.has_key?("status_name")
-      $log["status_id"] = "-"
-      $log["status_name"] = "-"
-      $log["timestamp"] = Time.now.to_i
-    end
-  end
 end
 
 #while Time.now - $t0 < 300 and not $log.has_key? "status_name" 
-while not $log.has_key? "status_name" 
-  sleep 1
-  receive_ais
+while true
+  begin
+    sleep 0.1
+    receive_ais
+  rescue Interrupt
+    puts
+    pp $freq
+    exit 0
+  end
 end
 
 $aisSock.close  
