@@ -105,8 +105,10 @@ while $log.keys.sort.join("").downcase != "courseheadingpositionlatpositionlonwi
   end
 end
 
-ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
-$log["status"] = ais["status_name"] || ""
+if File.exists? "#{$WORKING_DIR}/data/ais.json"
+  ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
+  $log["status"] = ais["status_name"] || ""
+end
 $log.delete "heading"
 pp "NMEA"=>$log,"timestamp"=>Time.now.to_i
 if $noon
