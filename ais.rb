@@ -45,8 +45,7 @@ def receive_ais
   end
 end
 
-#while Time.now - $t0 < 300 and not $log.has_key? "status_name" 
-while true
+while Time.now - $t0 < 300 and not $log.has_key? "status_name" 
   begin
     sleep 0.1
     receive_ais

@@ -121,4 +121,3 @@ end
 
 $nmeaSock.close
 
-
