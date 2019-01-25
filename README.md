@@ -8,6 +8,7 @@ Saves the data to `/var/www/noonlogger/reports/[date]_[ship]_NMEA.json`
 
 Ruby:
 - nmea\_plus 
+- tcp\_timeout
 
 Python:
 - pytz
@@ -20,7 +21,7 @@ First, install required packages:
 ```
 yum makecache fast
 yum install ruby ruby-devel rubygems-devel openssl-devel automake gcc gcc-c++ kernel-devel python2-pip
-gem install nmea_plus
+gem install nmea_plus tcp_timeout
 pip install --upgrade pip
 pip install pytz tzwhere
 ```

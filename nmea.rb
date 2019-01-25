@@ -18,6 +18,7 @@ $t0 = Time.now
 $log = {}
 $noon = nil
 $filename = nil
+$wait_period = 300
 begin
   $tz = JSON.parse(File.read("#{$WORKING_DIR}/data/tz.json"))["timedelta"].to_i
 rescue
@@ -27,7 +28,8 @@ end
 def receive_nmea
   begin
     raw = $nmeaSock.read(4096)
-  rescue
+  rescue => e
+    puts "Socket error: #{e}"
     return false
   end
   cut = raw.match(/\r\n$/).nil?
@@ -61,7 +63,7 @@ def receive_nmea
       #puts e.backtrace
     end
   end
-  if Time.now - $t0 > 60 and not $log.has_key?("wind_force")
+  if Time.now - $t0 > $wait_period and not $log.has_key?("wind_force")
     $log["wind_force"] = "-"
     $log["wind_direction"] = "-"
   end
@@ -80,8 +82,9 @@ def receive_wind
       next if $log.has_key?(mt)
       if mt == "MWV"
         units = {"K"=>0.539957,"M"=>1.94384,"N"=>1}
-        #$log["wind_force"] = (msg.wind_speed * units[msg.wind_speed_units]).to_i
-        $log["wind_force"] = (msg.wind_speed * 1).to_i
+        # 
+        $log["wind_force"] = (msg.wind_speed * units[msg.wind_speed_units]).to_i
+        #$log["wind_force"] = (msg.wind_speed * 1).to_i 
         if msg.wind_angle_reference == "T"
           $log["wind_direction"] = msg.wind_angle.to_i
         elsif $log.has_key?("heading")
@@ -96,8 +99,9 @@ def receive_wind
 end
 
 while $log.keys.sort.join("").downcase != "courseheadingpositionlatpositionlonwind_directionwind_force" or $filename.nil?
-  #sleep 1
-  break if Time.now - $t0 > 60
+  sleep 1
+  p $log
+  break if Time.now - $t0 > $wait_period
   #puts $log.keys.sort.join("").downcase
   receive_nmea
   if $WIND_SOCKET_PORT and $WIND_SOCKET_PORT != ""
