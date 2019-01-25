@@ -2,7 +2,7 @@
 
 Automated noon reports flow for Greenpeace ships.
 
-Saves the data to `/var/www/noonlogger/reports/[date]_[ship]_NMEA.json`
+Saves the data to `/var/www/noonlogger/reports/[date].json`
 
 ##### Dependencies
 

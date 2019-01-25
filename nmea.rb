@@ -9,7 +9,7 @@ require "json"
 require 'pp'  
 
 $decoder = NMEAPlus::Decoder.new
-$nmeaSock = TCPTimeout::TCPSocket.new( $NMEA_SOCKET_IP, $NMEA_SOCKET_PORT, read_timeout: 1)  
+$nmeaSock = TCPTimeout::TCPSocket.new( $NMEA_SOCKET_IP, $NMEA_SOCKET_PORT, read_timeout: 4)  
 if $WIND_SOCKET_PORT and $WIND_SOCKET_PORT != ""
   $windSock = TCPSocket.new( $WIND_SOCKET_IP, $WIND_SOCKET_PORT )  
 end
@@ -47,7 +47,8 @@ def receive_nmea
         $log["wind_direction"] = msg.wind_angle.to_i
       elsif mt == "ZDA"
         local = $t0 + $tz * 3600
-        $filename = "#{local.strftime("%Y-%m-%d")}_#{$VESSEL_NAME}_NMEA"
+        #$filename = "#{local.strftime("%Y-%m-%d")}_#{$VESSEL_NAME}_NMEA"
+        $filename = local.strftime("%Y-%m-%d")
         #puts "#{local.hour}:#{local.min}"
         $noon = true if local.hour.to_i % 24 == 11
       elsif mt == "HDT"
@@ -55,8 +56,8 @@ def receive_nmea
       elsif mt == "VTG"
         $log["course"] = msg.track_degrees_true.to_i
       elsif ["GGA","RMC"].include?(mt)
-        $log["positionLat"] = msg.latitude
-        $log["positionLon"] = msg.longitude
+        $log["position_lat"] = msg.latitude
+        $log["position_lon"] = msg.longitude
       end
     rescue => e
       #puts "Parse error: #{sentence}"
@@ -98,9 +99,9 @@ def receive_wind
   end
 end
 
-while $log.keys.sort.join("").downcase != "courseheadingpositionlatpositionlonwind_directionwind_force" or $filename.nil?
+while $log.keys.sort.join("").downcase != "courseheadingposition_latposition_lonwind_directionwind_force" or $filename.nil?
   sleep 1
-  p $log
+  #p $log
   break if Time.now - $t0 > $wait_period
   #puts $log.keys.sort.join("").downcase
   receive_nmea
@@ -111,9 +112,10 @@ end
 
 if File.exists? "#{$WORKING_DIR}/data/ais.json"
   ais = JSON.parse(File.read("#{$WORKING_DIR}/data/ais.json"))
-  $log["status"] = ais["status_name"] || ""
+  $log["ais_status"] = ais["status_name"] || ""
 end
 $log.delete "heading"
+$log["time_zone"] = $tz
 pp "NMEA"=>$log,"timestamp"=>Time.now.to_i
 if $noon
   File.open("#{$WORKING_DIR}/reports/#{$filename}.json","w") do |file|
