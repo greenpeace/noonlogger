@@ -56,8 +56,8 @@ def receive_nmea
       elsif mt == "VTG"
         $log["course"] = msg.track_degrees_true.to_i
       elsif ["GGA","RMC"].include?(mt)
-        $log["position_lat"] = (msg.latitude * 10000).round / 10000.0
-        $log["position_lon"] = (msg.longitude * 10000).round / 10000.0
+        $log["position_lat"] = (msg.latitude * 100000).round / 100000.0
+        $log["position_lon"] = (msg.longitude * 100000).round / 100000.0
       end
     rescue => e
       #puts "Parse error: #{sentence}"
